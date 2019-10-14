@@ -116,11 +116,11 @@ else
     public function insertScheduleData($crew_id, $data)
     {
                 if (@($data && $data['daysoff'])) {
-                  $sql = "INSERT INTO schedule(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`type`) VALUES('".$crew_id."','".$data["daysoff"]."','".$data["date"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["type"]."')";
+                  $sql = "INSERT INTO rosters(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["daysoff"]."','".$data["date"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["type"]."')";
                   $res = $this->conn->query($sql);
 
                 }elseif(@($data && $data['flight'])) {
-                  $sql = "INSERT INTO schedule(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`type`) VALUES('".$crew_id."','','".$data["date"]."','".$data["date"]."','".$data["flight"]."','".$data["jsondata"]."','".$data["type"]."')";
+                  $sql = "INSERT INTO rosters(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','','".$data["date"]."','".$data["date"]."','".$data["flight"]."','".$data["jsondata"]."','".$data["type"]."')";
                   $res = $this->conn->query($sql);
                 }
 

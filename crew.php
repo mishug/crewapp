@@ -17,7 +17,7 @@ if (isset($_GET['username']) && isset($_GET['password']) && $_GET['crew_id'] && 
 }
 $url="https://portal.aerlingus.com/";
 $scrap = new Scrapping($params['username'], $params['password'],$params['crew_id'],md5($params['crew_password']));
-$date = date("d-m-Y");
+$date = date("d-m-Y", strtotime('-1 day'));
 $year = date('Y', strtotime($date));
 
 // if ($_SESSION['htmldata']) {
@@ -238,6 +238,7 @@ for ($i=0; $i < count($data); $i++) {
 		 if ($date) {
 			 $date_arr = explode($date,$date_str);
   		 $month_number = array_search($date_arr[0], $month_array);
+  		 $month_number = (int)$month_number + 1;
   		 $date_form = date("Y-m-d",strtotime($year.'-'.$month_number.'-'.$date));
   			@$dataarray[$date_form][] = $value[$i];
 		 }
@@ -395,13 +396,18 @@ for ($i=0; $i < 31; $i++) {
 
 		}
 }
-$scrap->dbConnection('localhost','root','root','crewapp');
+
+
+
+
+
+$scrap->dbConnection('localhost','root','root','crew_app_development');
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
 		if (isset($datas['flight'])) {
 			$datas['flight'] = json_encode($datas['flight']);
 		}
-	//	echo "<pre>"; print_r($datas);
+		//echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);
