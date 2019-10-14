@@ -407,7 +407,7 @@ foreach($new_arr as $k=>$datas){
 		if (isset($datas['flight'])) {
 			$datas['flight'] = json_encode($datas['flight']);
 		}
-		//echo "<pre>"; print_r($datas);
+	//	echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);

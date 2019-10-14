@@ -115,14 +115,19 @@ else
     }
     public function insertScheduleData($crew_id, $data)
     {
-                if (@($data && $data['daysoff'])) {
-                  $sql = "INSERT INTO rosters(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["daysoff"]."','".$data["date"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["type"]."')";
-                  $res = $this->conn->query($sql);
+      echo "<pre>"; 
+      // data is not saving for 14th-oct-2019
 
-                }elseif(@($data && $data['flight'])) {
+      try {
+                 
                   $sql = "INSERT INTO rosters(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','','".$data["date"]."','".$data["date"]."','".$data["flight"]."','".$data["jsondata"]."','".$data["type"]."')";
                   $res = $this->conn->query($sql);
-                }
+                
+      } catch (Exception $e) {
+        echo $e->getMessage(); die("Hi");
+      }
+
+                
 
                 // if($res === true)
                 // {
