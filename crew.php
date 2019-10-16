@@ -169,7 +169,7 @@ $year = date('Y', strtotime($date));
 	     'Upgrade-Insecure-Requests: 1',
 	     'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.90 Safari/537.36'
 	 );
-	$resp = $scrap->postMethod($url,$header,'whoisonboard');
+	$resp = $scrap->postMethod($url,$header,'whoisonboard',$date);
 	$flight_crew_members_api = $scrap->postMethod($url,$header,'flightsdata',$date);
 	$flight_crew_members = $flight_crew_members_api['data'];
 	$cookiecat = explode(';',$resp['header']['Set-Cookie'][0]);

@@ -45,10 +45,12 @@ class Scrapping
                     }elseif($getdata == 'flightinfo'){
                            $postdata = 'hScreen=&SCR=&_flagy=&DoVac=0&Oper=1&CHK=&CR=&UNO=&EXITBTN=&VER=&MAC=&LCODE=&eReferrer=ecrew.aerlingus.com&hCat=&gen_dec_rep=&gen_dec_day=&gen_dec_route=&eCrewIsLockedDuetoPendingNotifs=0';
                     }elseif ($getdata == 'flightsdata') {
-                      $postdata = 'AjaxOperation=2&cal1=15/10/2019&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+                      $date = str_replace('"', '', $date);
+                      $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
                     }
                     elseif($getdata == 'whoisonboard'){
-                              $postdata = 'AjaxOperation=2&cal1=21/06/2019&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+                      $date = str_replace('"', '', $date);
+                              $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
                     }else{
                             $postdata = "login=".$this->username."&passwd=".$this->password;
                     }
@@ -173,7 +175,7 @@ else
         $flight_number = htmlentities($flight_number, null, 'utf-8');
         $flight_number = str_replace("&nbsp;", "", $flight_number);
         $flight_number = html_entity_decode($flight_number);
-        echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
+      //  echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
         //echo $id;
         if (trim($flight_number) == (string)$id) {
           foreach ($tds as $key => $td) {
