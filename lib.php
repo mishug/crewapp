@@ -44,7 +44,10 @@ class Scrapping
                             $postdata = "Crew_Psw=NaN&Crew_Id=".urlencode(base64_encode($this->crewid))."&CHK=&CR=&UNO=&EXITBTN=&VER=&LANG_CODE=&LANG_ISO=&UserAgent=Chrome&AD=&Crm=".$this->crewpassword."&Ids=";
                     }elseif($getdata == 'flightinfo'){
                            $postdata = 'hScreen=&SCR=&_flagy=&DoVac=0&Oper=1&CHK=&CR=&UNO=&EXITBTN=&VER=&MAC=&LCODE=&eReferrer=ecrew.aerlingus.com&hCat=&gen_dec_rep=&gen_dec_day=&gen_dec_route=&eCrewIsLockedDuetoPendingNotifs=0';
-                    }elseif($getdata == 'whoisonboard'){
+                    }elseif ($getdata == 'flightsdata') {
+                      $postdata = 'AjaxOperation=2&cal1=15/10/2019&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+                    }
+                    elseif($getdata == 'whoisonboard'){
                               $postdata = 'AjaxOperation=2&cal1=21/06/2019&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
                     }else{
                             $postdata = "login=".$this->username."&passwd=".$this->password;
@@ -115,21 +118,14 @@ else
     }
     public function insertScheduleData($crew_id, $data)
     {
-                if (@($data && $data['daysoff'])) {
-                  $sql = "INSERT INTO schedule(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`type`) VALUES('".$crew_id."','".$data["daysoff"]."','".$data["date"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["type"]."')";
-                  $res = $this->conn->query($sql);
+      try {
+        echo $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+        $res = $this->conn->query($sql);
+      } catch (\Exception $e) {
+        echo $e->getMessage(); die("Hi error here");
+      }
 
-                }elseif(@($data && $data['flight'])) {
-                  $sql = "INSERT INTO schedule(`crew_id`,`daysoff`,`date_from`,`date_to`,`flight_info`,`data`,`type`) VALUES('".$crew_id."','','".$data["date"]."','".$data["date"]."','".$data["flight"]."','".$data["jsondata"]."','".$data["type"]."')";
-                  $res = $this->conn->query($sql);
-                }
 
-                // if($res === true)
-                // {
-                //        echo "Data Inserted";
-                // }else {
-                //   echo "<pre>"; print_r($res);
-                // }
     }
     public function insertcsv($data)
     {
@@ -153,5 +149,53 @@ else
           return $result;
         }
         $this->$conn->close();
+    }
+
+    /*
+    Function to get crew members data
+
+    */
+    public function get_crew_members($table_data,$id)
+    {
+      $dom = new DOMDocument();
+      @$dom->loadHTML($table_data);
+      // get the third table
+      $table = $dom->getElementsByTagName('table')->item(0);
+      $trs = $table->childNodes;
+      foreach ($trs as $key => $tr) {
+        $tds = $tr->childNodes;
+        $flight_number =$tds->item(0)->nodeValue;
+        $flight_number = htmlentities($flight_number, null, 'utf-8');
+        $flight_number = str_replace("&nbsp;", "", $flight_number);
+        $flight_number = html_entity_decode($flight_number);
+        echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
+        //echo $id;
+        if (trim($flight_number) == (string)$id) {
+          foreach ($tds as $key => $td) {
+            if ($key > 18) {
+              /*
+              Codes for getting the crew members data
+              19: Route Number,
+              20: route_day
+              22: displayed_date
+              21 : SROW
+
+              */
+              // $td->nodeValue;
+              $flight['route_no'] = $tds->item(19)->nodeValue;
+              $flight['route_day'] = $tds->item(21)->nodeValue;
+              $flight['SROW'] = $tds->item(23)->nodeValue;
+              $flight['displayed_date'] = $tds->item(25)->nodeValue;
+            }
+
+          }
+          return $flight;
+
+        }
+
+      //  echo $tds->item(0)->nodeValue."/n";
+      }
+      //echo "<pre>"; print_r($first_row);
+
     }
 }

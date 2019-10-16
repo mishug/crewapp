@@ -170,6 +170,8 @@ $year = date('Y', strtotime($date));
 	     'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.90 Safari/537.36'
 	 );
 	$resp = $scrap->postMethod($url,$header,'whoisonboard');
+	$flight_crew_members_api = $scrap->postMethod($url,$header,'flightsdata',$date);
+	$flight_crew_members = $flight_crew_members_api['data'];
 	$cookiecat = explode(';',$resp['header']['Set-Cookie'][0]);
 	$url = 'https://ecrew.aerlingus.com/wtouch/perinfo.exe/crwsche';
 	$header = array(
@@ -204,7 +206,7 @@ $year = date('Y', strtotime($date));
 //}
 $dom = new DOMDocument();
 @$dom->loadHTML($resp['data']);
-// echo $resp['data'];
+echo $resp['data'];
 // get the third table
 $thirdTable = $dom->getElementsByTagName('table')->item(0);
 $node = $thirdTable->firstChild;
@@ -214,7 +216,7 @@ $standoff_cat = ["APS","RAS","APW","APWA","APWB","SBX","SBXL","SBY","SBYA","SBYB
 $training_cat = [
 	"GSP","OSD","SEPR","SEP2","SEP3","SEP4","SEP5","SEP6","SEP7","SEP8","IT","MHT","ICRM","ISEC","FAO","A320","BSBY","SD","TABA","S75A","BCT","ISCC","CST","TSEN","IW"
 ];
-$airport_codes = ["ORD","DUB","LGW","NOC","PRG","LHR","JFK","AMS","BHD"];
+$airport_codes = ["ORD","DUB","LGW","NOC","PRG","LHR","JFK","AMS","BHD","SEA","IAD"];
 $month_array = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 $days_array = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 do {
@@ -278,17 +280,51 @@ for ($i=0; $i < 31; $i++) {
 		}
 		if (@$data[6] && @is_numeric($data[6][$i])) {
 			$new_arr[$i]['flight'][$filght_count]['number'] = $data[6][$i];
+			$new_arr[$i]['roster_type'] = 'flight';
 			}elseif (@$data[6] && in_array($data[6][$i],$daysoff_cat)) {
-			@$new_arr[$i]['daysoff'] = $data[6][$i];
-			@$new_arr[$i]['type'] = 'daysoff';
+			@$new_arr[$i]['roster_sub_type'] = $data[6][$i];
+			@$new_arr[$i]['roster_type'] = 'daysoff';
 			continue;
-		}elseif ($data[6] == 'PYRD') {
-			$new_arr[$i]['flight'][$filght_count]['type'] = 'PYRD';
+		}elseif (@$data[6] && in_array($data[6][$i],$standoff_cat)) {
+			@$new_arr[$i]['roster_sub_type'] = $data[6][$i];
+			@$new_arr[$i]['duty_start'] = $data[7][$i];
+			@$new_arr[$i]['duty_end'] = $data[8][$i];
+			@$new_arr[$i]['roster_type'] = 'standoff';
+			continue;
+		}elseif (@$data[6] && in_array($data[6][$i],$training_cat)) {
+			@$new_arr[$i]['roster_sub_type'] = $data[6][$i];
+			@$new_arr[$i]['duty_start'] = $data[7][$i];
+			@$new_arr[$i]['flight_start'] = $data[8][$i];
+			@$new_arr[$i]['flight_end'] = $data[9][$i];
+			@$new_arr[$i]['duty_end'] = $data[10][$i];
+			@$new_arr[$i]['roster_type'] = 'training';
+			continue;
+		}
+
+
+		elseif ($data[6] == 'PYRD') {
+			$new_arr[$i]['roster_type'] = 'flight';
+			$new_arr[$i]['roster_sub_type']  = 'PYRD';
 		}elseif ($data[6] == 'K') {
-			$new_arr[$i]['flight'][$filght_count]['type'] = 'K';
+			$new_arr[$i]['roster_type'] = 'flight';
+			$new_arr[$i]['roster_sub_type']  = 'K';
+		}elseif (@$data[6] && in_array($data[6][$i],$airport_codes)) {
+			$new_arr[$i]['flight'][$filght_count]['arrival_code'] = $data[6][$i];
+			$new_arr[$i]['flight'][$filght_count]['flight_end'] = $data[7][$i];
+			$new_arr[$i]['flight'][$filght_count]['duty_end'] = $data[8][$i];
+			$new_arr[$i]['flight'][$filght_count]['aircraft_type'] = $data[9][$i];
+			$new_arr[$i]['roster_type'] = "flight";
+			$new_arr[$i]['roster_sub_type'] = "1 sector (TA inbound arrival)";
+			continue;
+
+		}elseif (@$data[6] && strlen($data[6][$i]) == 2) {
+			$new_arr[$i]['roster_type'] = 'flight';
+			$new_arr[$i]['roster_sub_type']  = "Blank";
+			continue;
 		}
 		else {
-			$new_arr[$i]['flight'][$filght_count]['type'] = $data[6][$i];
+			$new_arr[$i]['roster_type'] = 'flight';
+			$new_arr[$i]['roster_sub_type']  = $data[6][$i];
 		}
 		//flight cases
 		$new_arr[$i]['flight'][$filght_count]['duty_start'] = $data[7][$i];
@@ -303,7 +339,7 @@ for ($i=0; $i < 31; $i++) {
 			if (strpos($data[12][$i],":") !== false) {
 				$new_arr[$i]['flight'][$filght_count]['duty_end'] = $data[12][$i];
 				$new_arr[$i]['flight'][$filght_count]['aircraft_type'] = $data[13][$i];
-				$new_arr[$i]['type'] = "1 sector(TA outbound only)";
+				$new_arr[$i]['roster_sub_type'] = "1 sector(TA outbound only)";
 				//$j++;
 				//case3  2 sectors Europe only
 			}else {
@@ -317,7 +353,7 @@ for ($i=0; $i < 31; $i++) {
 					$new_arr[$i]['flight'][$filght_count]['departure_code'] = $data[15][$i];
 					$new_arr[$i]['flight'][$filght_count]['arrival_code'] = $data[16][$i];
 					$new_arr[$i]['flight'][$filght_count]['flight_end'] = $data[17][$i];
-					$new_arr[$i]['type'] = "2 sectors(Europe only)";
+					$new_arr[$i]['roster_sub_type'] = "2 sectors(Europe only)";
 					//case 5 2 sector + K duty
 					if (strlen($data[18][$i]) == 2) {
 
@@ -331,7 +367,7 @@ for ($i=0; $i < 31; $i++) {
 							$new_arr[$i]['flight'][$filght_count]['departure_code'] = $data[21][$i];
 							$new_arr[$i]['flight'][$filght_count]['arrival_code'] = $data[22][$i];
 							$new_arr[$i]['flight'][$filght_count]['flight_end'] = $data[23][$i];
-							$new_arr[$i]['type'] = "3 sectors(LHR only)";
+							$new_arr[$i]['roster_sub_type'] = "3 sectors(LHR only)";
 							//case 7, 4 sector
 							if (strlen($data[24][$i]) == 2) {
 								$new_arr[$i]['flight'][$filght_count]['space'] = true;
@@ -349,7 +385,7 @@ for ($i=0; $i < 31; $i++) {
 								$new_arr[$i]['flight'][$filght_count]['arrival_code'] = $data[34][$i];
 								$new_arr[$i]['flight'][$filght_count]['flight_end'] = $data[35][$i];
 								$new_arr[$i]['flight'][$filght_count]['duty_end'] = $data[36][$i];
-								$new_arr[$i]['type'] = "4 sectors";
+								$new_arr[$i]['roster_sub_type'] = "4 sectors";
 							}else {
 								$new_arr[$i]['flight'][$filght_count]['duty_end'] = $data[24][$i];
 							//	$j++;
@@ -360,7 +396,7 @@ for ($i=0; $i < 31; $i++) {
 							$new_arr[$i]['flight'][$filght_count]['type'] = 'K';
 							$new_arr[$i]['flight'][$filght_count]['duty_start'] = $data[20][$i];
 							$new_arr[$i]['flight'][$filght_count]['duty_end'] = $data[21][$i];
-							$new_arr[$i]['type'] = "2 sectors(K duty only)";
+							$new_arr[$i]['roster_sub_type'] = "2 sectors(K duty only)";
 						//	$j++;
 						}
 
@@ -391,17 +427,28 @@ for ($i=0; $i < 31; $i++) {
 		}else {
 				//case2 TA inbound only
 				$new_arr[$i]['flight'][$filght_count]['aircraft_type'] = $data[10][$i];
+				$new_arr[$i]['roster_sub_type'] = '1 sector (TA inbound only)';
 
 
 		}
 }
+
+//echo "<pre>"; print_r($new_arr); die("Hey I am here");
 $scrap->dbConnection('localhost','root','root','crewapp');
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
 		if (isset($datas['flight'])) {
-			$datas['flight'] = json_encode($datas['flight']);
+			// foreach ($datas['flight'] as $key => $flights) {
+			// 	echo "<pre>"; print_r($flights);
+			// echo	$flight_number = $flights['number'];
+			// 	 $crew_data = $scrap->get_crew_members($flight_crew_members,$flight_number);
+			// 	 $datas['crew_data'] = json_encode($crew_data);
+			// }
+
+			$datas['flight_info'] = json_encode($datas['flight']);
+		}else {
+			$datas['flight_info'] = null;
 		}
-	//	echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);
