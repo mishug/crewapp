@@ -17,7 +17,7 @@ if (isset($_GET['username']) && isset($_GET['password']) && $_GET['crew_id'] && 
 }
 $url="https://portal.aerlingus.com/";
 $scrap = new Scrapping($params['username'], $params['password'],$params['crew_id'],md5($params['crew_password']));
-$date = date("d-m-Y");
+$date = date("d-m-Y", strtotime('-1 day'));
 $year = date('Y', strtotime($date));
 
 // if ($_SESSION['htmldata']) {
@@ -240,6 +240,7 @@ for ($i=0; $i < count($data); $i++) {
 		 if ($date) {
 			 $date_arr = explode($date,$date_str);
   		 $month_number = array_search($date_arr[0], $month_array);
+  		 $month_number = (int)$month_number + 1;
   		 $date_form = date("Y-m-d",strtotime($year.'-'.$month_number.'-'.$date));
   			@$dataarray[$date_form][] = $value[$i];
 		 }
@@ -433,7 +434,8 @@ for ($i=0; $i < 31; $i++) {
 		}
 }
 
-//echo "<pre>"; print_r($new_arr); die("Hey I am here");
+//echo "<pre>"; print_r($new_arr);
+//die("Hey I am here");
 $scrap->dbConnection('localhost','root','root','crewapp');
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
@@ -447,7 +449,7 @@ foreach($new_arr as $k=>$datas){
 
 			$datas['flight_info'] = json_encode($datas['flight']);
 		}else {
-			$datas['flight_info'] = null;
+			$datas['flight_info'] = '';
 		}
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
