@@ -4,6 +4,7 @@ ini_set('display_errors',true);
 error_reporting(E_ALL);
 
 require_once 'lib.php';
+include_once 'config.php';
 session_start();
 
 if (isset($_GET['username']) && isset($_GET['password']) && $_GET['crew_id'] && $_GET['crew_password']) {
@@ -436,7 +437,7 @@ for ($i=0; $i < 31; $i++) {
 
 //echo "<pre>"; print_r($new_arr);
 //die("Hey I am here");
-$scrap->dbConnection('localhost','root','root','crewapp');
+$scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
 		if (isset($datas['flight'])) {

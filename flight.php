@@ -4,6 +4,7 @@ ini_set('display_errors',true);
 error_reporting(E_ALL);
 
 require_once 'lib.php';
+require_once 'config.php';
 session_start();
 
 if (isset($_GET['username']) && isset($_GET['password']) && $_GET['crew_id'] && $_GET['crew_password'] && $_GET['date'] && $_GET['flight_number']) {
@@ -205,7 +206,7 @@ if (isset($_SESSION[$params['username']])) {
 
 		//	echo $node->nodeValue;
 		} while ($node = $node->nextSibling);
-		$scrap->dbConnection('localhost','root','root','crewapp');
+		$scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 		$membercount = 0;
 		foreach ($data as $key => $value) {
 			if ($key > 1) {
