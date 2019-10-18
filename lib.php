@@ -122,9 +122,9 @@ else
     {
       try {
         if ($data['roster_type'] == 'daysoff') {
-          echo $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
+          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
         }else {
-          echo $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
         }
 
         $res = $this->conn->query($sql);
@@ -132,6 +132,18 @@ else
         echo $e->getMessage(); die("Hi error here");
       }
 
+
+    }
+    public function insertMemebersQuery($insData)
+    {
+      try {
+        $value = implode(", ",array_values($insData));
+        echo  $sql = "INSERT INTO crew_members(`flight_number`,`flight_date`,`member_id`,`name`,`base`,`ac`,`pos`,`py`,`status`) VALUES(
+          '".$insData["flight_number"]."','".$insData["flight_date"]."','".$insData["member_id"]."','".$insData["name"]."','".$insData["base"]."','".$insData["ac"]."','".$insData["pos"]."','".$insData["py"]."','".$insData["status"]."')";
+        $res = $this->conn->query($sql);
+      } catch (\Exception $e) {
+        echo $e->getMessage(); die("Hi error here");
+      }
 
     }
     public function insertcsv($data)

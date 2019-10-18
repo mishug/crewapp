@@ -22,7 +22,7 @@ if (isset($_SESSION[$params['username']])) {
 	// code...
 }else {
 	$url="https://portal.aerlingus.com/";
-	$date = $params['date'];
+	$date = date("d/m/Y", strtotime("".$params['date']));
 	$year = date('Y', strtotime($date));
 	$resp = $scrap->getMethod($url); // first time visit home page
 	$url = $resp['header']['Location'];
@@ -190,15 +190,44 @@ if (isset($_SESSION[$params['username']])) {
 
 		$dom = new DOMDocument();
 		@$dom->loadHTML($resp['data']);
+		echo $resp['data'];
 		// get the third table
 		$thirdTable = $dom->getElementsByTagName('table')->item(0);
-		foreach ($thirdTable as $key => $value) {
-			echo $value->nodeValue."\n";
+		$node = $thirdTable->firstChild;
+		do {
+			$child_nodes = $node->childNodes;
+			$child_data = [];
+			foreach ($child_nodes as $key => $value) {
+				$tdtext = $child_nodes->item($key)->nodeValue;
+				$child_data[] = $tdtext;
+			}
+			$data[] = $child_data;
+
+		//	echo $node->nodeValue;
+		} while ($node = $node->nextSibling);
+		$scrap->dbConnection('localhost','root','root','crewapp');
+		$membercount = 0;
+		foreach ($data as $key => $value) {
+			if ($key > 1) {
+				$crew_members_data[$membercount]['flight_number'] = $params['flight_number'];
+				$crew_members_data[$membercount]['flight_date'] = date("Y-m-d", strtotime("".$_GET['date']));
+				$crew_members_data[$membercount]['member_id'] = $value[0];
+				$crew_members_data[$membercount]['name'] = str_replace("'","`",$value[2]);
+				$crew_members_data[$membercount]['base'] = $value[4];
+				$crew_members_data[$membercount]['ac'] = $value[6];
+				$crew_members_data[$membercount]['pos'] = $value[8];
+				$crew_members_data[$membercount]['py'] = $value[10];
+				$crew_members_data[$membercount]['status'] = '';
+				$scrap->insertMemebersQuery($crew_members_data[$membercount]);
+				$membercount++;
+			}
 		}
+
+
 
 		//echo $thirdTable->childNodes;
 		// echo "<pre>"; print_r($resp);
-		// echo "<pre>"; print_r($crew_data);
+		echo "<pre>"; print_r($crew_members_data);
 		die();
 		// $cookiecat = explode(';',$resp['header']['Set-Cookie'][0]);
 		// $url = 'https://ecrew.aerlingus.com/wtouch/perinfo.exe/crwsche';
