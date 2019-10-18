@@ -57,6 +57,10 @@ $year = date('Y', strtotime($date));
 	$resp = $scrap->postMethod($url,$header,'login');
 
 	$url = $resp['header']['Location'];
+	if ($url == '/vpn/tmindex.html') {
+		echo json_encode(['message'=>'Login failed','error'=>true]);
+		exit;
+	}
 	$header = array(
 						'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3',
 						'Accept-Encoding: gzip, deflate, br',
