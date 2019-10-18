@@ -436,7 +436,7 @@ for ($i=0; $i < 31; $i++) {
 
 //echo "<pre>"; print_r($new_arr);
 //die("Hey I am here");
-$scrap->dbConnection('localhost','root','root','crewapp');
+$scrap->dbConnection('localhost','root','root','crew_app_development');
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
 		if (isset($datas['flight'])) {
