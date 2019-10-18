@@ -243,7 +243,7 @@ for ($i=0; $i < count($data); $i++) {
   		 $month_number = array_search($date_arr[0], $month_array);
   		 $month_number = (int)$month_number + 1;
   		 $date_form = date("Y-m-d",strtotime($year.'-'.$month_number.'-'.$date));
-  			@$dataarray[$date_form][] = $value[$i];
+  			@$dataarray[$date_form][] = str_replace("\r\n","",$value[$i]);
 		 }
 
 		}
@@ -452,6 +452,7 @@ foreach($new_arr as $k=>$datas){
 		}else {
 			$datas['flight_info'] = '';
 		}
+	//	echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);

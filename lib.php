@@ -190,6 +190,7 @@ else
       //  echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
         //echo $id;
         if (trim($flight_number) == (string)$id) {
+          echo $flight_number;
           foreach ($tds as $key => $td) {
             if ($key > 18) {
               /*
@@ -216,5 +217,12 @@ else
       }
       //echo "<pre>"; print_r($first_row);
 
+    }
+
+    public function validateDate($date)
+    {
+    $tempDate = explode('-', $date);
+    // checkdate(month, day, year)
+    return checkdate($tempDate[1], $tempDate[2], $tempDate[0]);
     }
 }

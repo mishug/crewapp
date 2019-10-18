@@ -191,7 +191,7 @@ if (isset($_SESSION[$params['username']])) {
 
 		$dom = new DOMDocument();
 		@$dom->loadHTML($resp['data']);
-		echo $resp['data'];
+		//echo $resp['data'];
 		// get the third table
 		$thirdTable = $dom->getElementsByTagName('table')->item(0);
 		$node = $thirdTable->firstChild;
