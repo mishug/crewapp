@@ -4,6 +4,7 @@ ini_set('display_errors',true);
 error_reporting(E_ALL);
 
 require_once 'lib.php';
+include_once 'config.php';
 session_start();
 
 if (isset($_GET['username']) && isset($_GET['password']) && $_GET['crew_id'] && $_GET['crew_password']) {
@@ -54,6 +55,8 @@ $year = date('Y', strtotime($date));
 	);
 
 	$resp = $scrap->postMethod($url,$header,'login');
+
+	echo "<pre>"; print_r($resp); die();
 
 	$url = $resp['header']['Location'];
 	$header = array(
@@ -169,7 +172,7 @@ $year = date('Y', strtotime($date));
 	     'Upgrade-Insecure-Requests: 1',
 	     'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.90 Safari/537.36'
 	 );
-	$resp = $scrap->postMethod($url,$header,'whoisonboard');
+	$resp = $scrap->postMethod($url,$header,'whoisonboard',$date);
 	$flight_crew_members_api = $scrap->postMethod($url,$header,'flightsdata',$date);
 	$flight_crew_members = $flight_crew_members_api['data'];
 	$cookiecat = explode(';',$resp['header']['Set-Cookie'][0]);
@@ -242,7 +245,7 @@ for ($i=0; $i < count($data); $i++) {
   		 $month_number = array_search($date_arr[0], $month_array);
   		 $month_number = (int)$month_number + 1;
   		 $date_form = date("Y-m-d",strtotime($year.'-'.$month_number.'-'.$date));
-  			@$dataarray[$date_form][] = $value[$i];
+  			@$dataarray[$date_form][] = str_replace("\r\n","",$value[$i]);
 		 }
 
 		}
@@ -436,7 +439,8 @@ for ($i=0; $i < 31; $i++) {
 
 //echo "<pre>"; print_r($new_arr);
 //die("Hey I am here");
-$scrap->dbConnection('localhost','root','root','crew_app_development');
+
+$scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
 		if (isset($datas['flight'])) {
@@ -451,6 +455,7 @@ foreach($new_arr as $k=>$datas){
 		}else {
 			$datas['flight_info'] = '';
 		}
+	//	echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);

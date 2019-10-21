@@ -45,10 +45,12 @@ class Scrapping
                     }elseif($getdata == 'flightinfo'){
                            $postdata = 'hScreen=&SCR=&_flagy=&DoVac=0&Oper=1&CHK=&CR=&UNO=&EXITBTN=&VER=&MAC=&LCODE=&eReferrer=ecrew.aerlingus.com&hCat=&gen_dec_rep=&gen_dec_day=&gen_dec_route=&eCrewIsLockedDuetoPendingNotifs=0';
                     }elseif ($getdata == 'flightsdata') {
-                      $postdata = 'AjaxOperation=2&cal1=15/10/2019&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+                      $date = str_replace('"', '', $date);
+                      $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
                     }
                     elseif($getdata == 'whoisonboard'){
-                              $postdata = 'AjaxOperation=2&cal1=21/06/2019&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+                      $date = str_replace('"', '', $date);
+                              $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
                     }else{
                             $postdata = "login=".$this->username."&passwd=".$this->password;
                     }
@@ -120,9 +122,9 @@ else
     {
       try {
         if ($data['roster_type'] == 'daysoff') {
-          echo $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
+          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
         }else {
-          echo $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
         }
 
         $res = $this->conn->query($sql);
@@ -130,6 +132,18 @@ else
         echo $e->getMessage(); die("Hi error here");
       }
 
+
+    }
+    public function insertMemebersQuery($insData)
+    {
+      try {
+        $value = implode(", ",array_values($insData));
+        echo  $sql = "INSERT INTO crew_members(`flight_number`,`flight_date`,`member_id`,`name`,`base`,`ac`,`pos`,`py`,`status`) VALUES(
+          '".$insData["flight_number"]."','".$insData["flight_date"]."','".$insData["member_id"]."','".$insData["name"]."','".$insData["base"]."','".$insData["ac"]."','".$insData["pos"]."','".$insData["py"]."','".$insData["status"]."')";
+        $res = $this->conn->query($sql);
+      } catch (\Exception $e) {
+        echo $e->getMessage(); die("Hi error here");
+      }
 
     }
     public function insertcsv($data)
@@ -173,9 +187,10 @@ else
         $flight_number = htmlentities($flight_number, null, 'utf-8');
         $flight_number = str_replace("&nbsp;", "", $flight_number);
         $flight_number = html_entity_decode($flight_number);
-        echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
+      //  echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
         //echo $id;
         if (trim($flight_number) == (string)$id) {
+          echo $flight_number;
           foreach ($tds as $key => $td) {
             if ($key > 18) {
               /*
@@ -202,5 +217,12 @@ else
       }
       //echo "<pre>"; print_r($first_row);
 
+    }
+
+    public function validateDate($date)
+    {
+    $tempDate = explode('-', $date);
+    // checkdate(month, day, year)
+    return checkdate($tempDate[1], $tempDate[2], $tempDate[0]);
     }
 }
