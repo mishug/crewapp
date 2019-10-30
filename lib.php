@@ -121,7 +121,8 @@ else
     public function insertScheduleData($crew_id, $data)
     {
       try {
-        if ($data['roster_type'] == 'daysoff') {
+        //if ($data['roster_type'] == 'daysoff') {
+        if ($data['roster_type'] == 'Days Off') {  
           $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
         }else {
           $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
