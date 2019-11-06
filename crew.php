@@ -213,7 +213,7 @@ $year = date('Y', strtotime($date));
 //}
 $dom = new DOMDocument();
 @$dom->loadHTML($resp['data']);
-echo $resp['data'];
+// echo $resp['data'];
 // get the third table
 $thirdTable = $dom->getElementsByTagName('table')->item(0);
 $node = $thirdTable->firstChild;
@@ -454,6 +454,8 @@ for ($i=0; $i < 31; $i++) {
 //die("Hey I am here");
 
 $scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
+// echo '<pre>';
+
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
 		if (isset($datas['flight'])) {
@@ -468,7 +470,8 @@ foreach($new_arr as $k=>$datas){
 		}else {
 			$datas['flight_info'] = '';
 		}
-	//	echo "<pre>"; print_r($datas);
+		// echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);
+// die;
