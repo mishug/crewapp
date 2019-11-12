@@ -238,6 +238,7 @@ do {
 //	echo $node->nodeValue;
 } while ($node = $node->nextSibling);
 
+
 $dataarray = [];
 for ($i=0; $i < count($data); $i++) {
 	foreach ($data as $key => $value) {
@@ -450,14 +451,13 @@ for ($i=0; $i < 31; $i++) {
 		}
 }
 
-//echo "<pre>"; print_r($new_arr);
+// echo "<pre>"; print_r($new_arr);
+// die;
 //die("Hey I am here");
-
 $scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 // echo '<pre>';
-
 foreach($new_arr as $k=>$datas){
-		$datas['jsondata'] = json_encode($dataarray[$datas['date']]);
+		$datas['jsondata'] = stripcslashes(json_encode($dataarray[$datas['date']]));
 		if (isset($datas['flight'])) {
 			// foreach ($datas['flight'] as $key => $flights) {
 			// 	echo "<pre>"; print_r($flights);
@@ -466,12 +466,12 @@ foreach($new_arr as $k=>$datas){
 			// 	 $datas['crew_data'] = json_encode($crew_data);
 			// }
 
-			$datas['flight_info'] = json_encode($datas['flight']);
+			$datas['flight_info'] = stripcslashes(json_encode($datas['flight']));
 		}else {
-			$datas['flight_info'] = '';
+			$datas['flight_info'] = '{}';
 		}
-		// echo "<pre>"; print_r($datas);
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
+// die;
 echo json_encode(['message'=>'Data sync successfully', 'success'=>true]);
 // die;

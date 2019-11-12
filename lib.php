@@ -120,20 +120,80 @@ else
     }
     public function insertScheduleData($crew_id, $data)
     {
+      $recordType = '';
       try {
-        //if ($data['roster_type'] == 'daysoff') {
-        if ($data['roster_type'] == 'Days Off' || $data['roster_sub_type'] == 'BLANK') {  
-          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
-        }else {
-          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+        $query = "SELECT * FROM `rosters` WHERE `is_updated`=0 and `roster_date`='".$data['date']."'";
+        $result = $this->conn->query($query);
+        $currentRecord = $result->fetch_assoc();
+        // if row exists
+        if($result->num_rows > 0){
+          $recordType = 'update';
+        }else{
+          //insert new row
+          //if ($data['roster_type'] == 'daysoff') {
+          if ($data['roster_type'] == 'Days Off' || $data['roster_sub_type'] == 'BLANK') {
+            $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+          }else {
+            $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+          }
+          $res = $this->conn->query($sql);
+          $recordType = 'insert';
         }
 
-        $res = $this->conn->query($sql);
+        if($recordType=='update'){
+          //Check if there is any change in old data
+          if($currentRecord['crew_id']==$crew_id && $currentRecord['roster_sub_type']==$data["roster_sub_type"] && $currentRecord['roster_type']==$data["roster_type"])
+          {
+            //Check change in flight info data
+            $oldFlightData =  json_decode($currentRecord['flight_info'],TRUE);
+            $newFlightData =  json_decode($data['flight_info'],TRUE);
+            $i=0;
+            $change = 0;
+            foreach($oldFlightData as $flight){
+              $diff = array_diff($flight,$newFlightData[$i]);
+              if(!empty($diff)){
+                $change = 1;
+              }
+              $i++;
+            }
+            if($change==1){
+              $affectedRows = 1;  
+            }else{
+              $affectedRows = 0;  
+            }
+          }else{
+            $affectedRows = 1;
+          }
+          // if data is changed than old
+          if($affectedRows > 0){
+            $rosterId = $currentRecord['id'];
+            $sql = "UPDATE `rosters` SET `is_updated`=1 WHERE `id`=".$currentRecord['id'];
+            $res = $this->conn->query($sql);
+            // Get All Swap Request of this roster
+            $sql = "SELECT * FROM `swap_requests` WHERE `roster_id`=".$rosterId;
+            $requestData = $this->conn->query($sql);
+            while($row = $requestData->fetch_assoc()) {
+              $request_id = $row["id"];
+              //Delete message of this swap request id
+              $sql = "UPDATE `messages` SET `is_deleted`=1 WHERE `swap_request_id`=".$request_id;
+              $this->conn->query($sql);
+            }
+            $sql = "UPDATE `swap_request_exchanges` SET `is_deleted`=1 WHERE `roster_id`=".$rosterId;
+            $this->conn->query($sql);
+            $sql = "UPDATE `swap_requests` SET `is_deleted`=1 WHERE `roster_id`=".$rosterId;
+            $this->conn->query($sql);
+            //Insert new record of updated roster
+            if ($data['roster_type'] == 'Days Off' || $data['roster_sub_type'] == 'BLANK') {
+              $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+            }else {
+              $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
+            }
+            $this->conn->query($sql);
+          }
+        }
       } catch (\Exception $e) {
         echo $e->getMessage(); die("Hi error here");
       }
-
-
     }
     public function insertMemebersQuery($insData)
     {
