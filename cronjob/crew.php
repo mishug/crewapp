@@ -2,9 +2,8 @@
 header("Content-Type: application/json; charset=UTF-8");
 ini_set('display_errors',true);
 error_reporting(E_ALL);
-echo __DIR__; exit();
 require_once 'lib.php';
-include_once 'config.php';
+include_once dirname(__DIR__).'/config.php';
 $scrap = new Scrapping(); // initialize class
 $scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 $users = $scrap->getAllUser();

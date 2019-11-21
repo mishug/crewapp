@@ -3,7 +3,7 @@ header("Content-Type: application/json; charset=UTF-8");
 ini_set('display_errors',true);
 error_reporting(E_ALL);
 require_once 'lib.php';
-require_once 'config.php';
+require_once dirname(__DIR__).'/config.php';
 // if (isset($_GET['username']) && isset($_GET['password']) && $_GET['crew_id'] && $_GET['crew_password'] && $_GET['date'] && $_GET['flight_number']) {
 // 	$params['username'] = $_GET['username'];
 // 	$params['password'] = $_GET['password'];
