@@ -122,7 +122,7 @@ else
     {
       try {
         //if ($data['roster_type'] == 'daysoff') {
-        if ($data['roster_type'] == 'Days Off') {  
+        if ($data['roster_type'] == 'Days Off' || $data['roster_sub_type'] == 'BLANK') {  
           $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
         }else {
           $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
@@ -139,7 +139,7 @@ else
     {
       try {
         $value = implode(", ",array_values($insData));
-        echo  $sql = "INSERT INTO crew_members(`flight_number`,`flight_date`,`member_id`,`name`,`base`,`ac`,`pos`,`py`,`status`) VALUES(
+        $sql = "INSERT INTO crew_members(`flight_number`,`flight_date`,`member_id`,`name`,`base`,`ac`,`pos`,`py`,`status`) VALUES(
           '".$insData["flight_number"]."','".$insData["flight_date"]."','".$insData["member_id"]."','".$insData["name"]."','".$insData["base"]."','".$insData["ac"]."','".$insData["pos"]."','".$insData["py"]."','".$insData["status"]."')";
         $res = $this->conn->query($sql);
       } catch (\Exception $e) {

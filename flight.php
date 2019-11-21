@@ -173,7 +173,7 @@ if (isset($_SESSION[$params['username']])) {
 		$flight_crew_members_api = $scrap->postMethod($url,$header,'flightsdata',$date);
 		$flight_crew_members = $flight_crew_members_api['data'];
 		$crew_data = $scrap->get_crew_members($flight_crew_members,$params['flight_number']);
-		echo "<pre>"; print_r($crew_data);
+		// echo "<pre>"; print_r($crew_data);
 		$resp = $scrap->postMethod($url,$header,'whoisonboard',$date);
 		$cookiecat = explode(';',$resp['header']['Set-Cookie'][0]);
 
@@ -208,28 +208,32 @@ if (isset($_SESSION[$params['username']])) {
 		} while ($node = $node->nextSibling);
 		$scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 		$membercount = 0;
+		// echo '<pre>';
 		foreach ($data as $key => $value) {
 			if ($key > 1) {
 				$crew_members_data[$membercount]['flight_number'] = $params['flight_number'];
 				$crew_members_data[$membercount]['flight_date'] = date("Y-m-d", strtotime("".$_GET['date']));
 				$crew_members_data[$membercount]['member_id'] = $value[0];
-				$crew_members_data[$membercount]['name'] = str_replace("'","`",$value[2]);
+				$name = str_replace("'","`",$value[2]);
+				$name = trim(preg_replace('/[^A-Za-z0-9. -()`]/', ' ', $name));
+				$crew_members_data[$membercount]['name'] = $name;
 				$crew_members_data[$membercount]['base'] = $value[4];
 				$crew_members_data[$membercount]['ac'] = $value[6];
 				$crew_members_data[$membercount]['pos'] = $value[8];
-				$crew_members_data[$membercount]['py'] = $value[10];
+				$py = trim(preg_replace('/[^A-Za-z0-9. -()`]/', ' ', $value[10]));
+				$crew_members_data[$membercount]['py'] = $py;
 				$crew_members_data[$membercount]['status'] = '';
 				$scrap->insertMemebersQuery($crew_members_data[$membercount]);
 				$membercount++;
+				// print_r($crew_members_data);
 			}
 		}
 
-
+		
 
 		//echo $thirdTable->childNodes;
 		// echo "<pre>"; print_r($resp);
-		echo "<pre>"; print_r($crew_members_data);
-		die();
+		// die();
 		// $cookiecat = explode(';',$resp['header']['Set-Cookie'][0]);
 		// $url = 'https://ecrew.aerlingus.com/wtouch/perinfo.exe/crwsche';
 		// $header = array(
