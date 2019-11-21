@@ -122,13 +122,6 @@ else
     {
       $recordType = '';
       try {
-
-        //if ($data['roster_type'] == 'daysoff') {
-        if ($data['roster_type'] == 'Days Off' || $data['roster_sub_type'] == 'BLANK') {  
-          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
-        }else {
-          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
-
         $query = "SELECT * FROM `rosters` WHERE `is_updated`=0 and `roster_date`='".$data['date']."'";
         $result = $this->conn->query($query);
         $currentRecord = $result->fetch_assoc();
@@ -230,9 +223,9 @@ else
         if ($res->num_rows > 0) {
           $result = [];
           while($row=mysqli_fetch_assoc($res))
-      		{
-      			$result[]=$row;
-      		}
+          {
+            $result[]=$row;
+          }
           return $result;
         }
         $this->$conn->close();

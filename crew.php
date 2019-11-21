@@ -456,7 +456,6 @@ for ($i=0; $i < 31; $i++) {
 //die("Hey I am here");
 $scrap->dbConnection(DB_HOST,DB_USER,DB_PWD,DB_NAME);
 // echo '<pre>';
-
 foreach($new_arr as $k=>$datas){
 		$datas['jsondata'] = stripcslashes(json_encode($dataarray[$datas['date']]));
 		if (isset($datas['flight'])) {
@@ -471,9 +470,6 @@ foreach($new_arr as $k=>$datas){
 		}else {
 			$datas['flight_info'] = '{}';
 		}
-
-		// echo "<pre>"; print_r($datas);
-
 		$scrap->insertScheduleData($params['crew_id'],$datas);
 }
 // die;
