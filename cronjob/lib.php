@@ -8,70 +8,107 @@ class Scrapping
     private $crewid;
     private $crewpassword;
 
-    public function __construct($username,$password,$crewid,$crewpass)
+    // public function __construct($username,$password,$crewid,$crewpass)
+    // {
+    //     $this->username = $username;
+    //     $this->password = $password;
+    //     $this->crewid = $crewid;
+    //     $this->crewpassword = $crewpass;
+    // }
+
+    public function getAllUser()
     {
-                    $this->username = $username;
-                    $this->password = $password;
-                    $this->crewid = $crewid;
-                    $this->crewpassword = $crewpass;
+        try {
+            $query = "SELECT id,airline_portal_username,airline_portal_password,crew_id,crew_password FROM `users` WHERE status = 1";
+            $result = $this->conn->query($query);
+            $data = array();
+            while($row = $result->fetch_assoc()) {
+                $data[] = $row;
+            }
+            return $data;
+        }catch(Exception $e){
+            return $e->getMessage();
+        }
     }
 
+    public function getAllFlights()
+    {
+        try {
+            $query = "SELECT JSON_EXTRACT(flight_info, '$[0].number') AS crew_id,id  FROM rosters WHERE roster_type='Flights'";
+            $result = $this->conn->query($query);
+            $data = array();
+            while($row = $result->fetch_assoc()) {
+                if($row['flight_number'] != ""){
+                    $data[] = $row;
+                }
+            }
+            return $data;
+        }catch(Exception $e){
+            return $e->getMessage();
+        }        
+    }
+    public function setCredential($user)
+    {
+        $this->username = $user['airline_portal_username'];
+        $this->password = $user['airline_portal_password'];
+        $this->crewid = $user['crew_id'];
+        $this->crewpassword = md5($user['crew_password']);        
+    }
     public function getMethod($url, $headerdata = false)
     {
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_HEADER, true);
-                    if($headerdata)
-                    {
-                                 curl_setopt($ch, CURLOPT_HTTPHEADER,$headerdata);
-                    }
-                    curl_setopt($ch, CURLOPT_URL, $url);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
-                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST ,"GET");
-                    $this->response = curl_exec($ch);
-                    curl_close($ch);
-                    $header = $this->parseHeader();
-                    return ['data' => $this->response , 'header' => $header ];
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        if($headerdata)
+        {
+                     curl_setopt($ch, CURLOPT_HTTPHEADER,$headerdata);
+        }
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST ,"GET");
+        $this->response = curl_exec($ch);
+        curl_close($ch);
+        $header = $this->parseHeader();
+        return ['data' => $this->response , 'header' => $header ];
     }
 
     public function postMethod($url,$headerdata = false,$getdata = false,$date = false)
     {
-              if($getdata == 'getdata'){
-                    $postdata = 'CHK=&CR=&UNO=&nDays=31&times_format=1&EXITBTN=&VER=&Published=0&nDaysmobile=31&times_formatmobile=1&cal1='.urlencode($date).'&nDaysnormal=31&times_formatnormal=1';
-              }elseif($getdata == 'verify'){
-                            $postdata = "Crew_Psw=NaN&Crew_Id=".urlencode(base64_encode($this->crewid))."&CHK=&CR=&UNO=&EXITBTN=&VER=&LANG_CODE=&LANG_ISO=&UserAgent=Chrome&AD=&Crm=".$this->crewpassword."&Ids=";
-                    }elseif($getdata == 'flightinfo'){
-                           $postdata = 'hScreen=&SCR=&_flagy=&DoVac=0&Oper=1&CHK=&CR=&UNO=&EXITBTN=&VER=&MAC=&LCODE=&eReferrer=ecrew.aerlingus.com&hCat=&gen_dec_rep=&gen_dec_day=&gen_dec_route=&eCrewIsLockedDuetoPendingNotifs=0';
-                    }elseif ($getdata == 'flightsdata') {
-                      $date = str_replace('"', '', $date);
-                      $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
-                    }
-                    elseif($getdata == 'whoisonboard'){
-                      $date = str_replace('"', '', $date);
-                              $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
-                    }else{
-                            $postdata = "login=".$this->username."&passwd=".$this->password;
-                    }
-                 $ch = curl_init();
-                 curl_setopt($ch, CURLOPT_HEADER, true);
-                 if($headerdata)
-                    {
-                                 curl_setopt($ch, CURLOPT_HTTPHEADER,$headerdata);
-                    }
-                 curl_setopt($ch, CURLOPT_URL, $url);
-                 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                 curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
-                 curl_setopt($ch, CURLOPT_POST ,1);
-                 curl_setopt($ch, CURLOPT_POSTFIELDS,$postdata);
-                    $this->response = curl_exec($ch);
-                //  print_r(curl_getinfo($ch));
-                    curl_close($ch);
-                    $header = $this->parseHeader();
-                    return ['data' => $this->response , 'header' => $header ];
+        if($getdata == 'getdata'){
+            $postdata = 'CHK=&CR=&UNO=&nDays=31&times_format=1&EXITBTN=&VER=&Published=0&nDaysmobile=31&times_formatmobile=1&cal1='.urlencode($date).'&nDaysnormal=31&times_formatnormal=1';
+            }elseif($getdata == 'verify'){
+                $postdata = "Crew_Psw=NaN&Crew_Id=".urlencode(base64_encode($this->crewid))."&CHK=&CR=&UNO=&EXITBTN=&VER=&LANG_CODE=&LANG_ISO=&UserAgent=Chrome&AD=&Crm=".$this->crewpassword."&Ids=";
+            }elseif($getdata == 'flightinfo'){
+                $postdata = 'hScreen=&SCR=&_flagy=&DoVac=0&Oper=1&CHK=&CR=&UNO=&EXITBTN=&VER=&MAC=&LCODE=&eReferrer=ecrew.aerlingus.com&hCat=&gen_dec_rep=&gen_dec_day=&gen_dec_route=&eCrewIsLockedDuetoPendingNotifs=0';
+            }elseif ($getdata == 'flightsdata') {
+                $date = str_replace('"', '', $date);
+                $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+            }elseif($getdata == 'whoisonboard'){
+                $date = str_replace('"', '', $date);
+                $postdata = 'AjaxOperation=2&cal1='.$date.'&Airport=&ACRegistration=&Deps=0&Flight=&times_format=1';
+            }else{
+                $postdata = "login=".$this->username."&passwd=".$this->password;
+            }
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_HEADER, true);
+            if($headerdata)
+            {
+                curl_setopt($ch, CURLOPT_HTTPHEADER,$headerdata);
+            }
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 0);
+            curl_setopt($ch, CURLOPT_POST ,1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS,$postdata);
+            $this->response = curl_exec($ch);
+            //  print_r(curl_getinfo($ch));
+            curl_close($ch);
+            $header = $this->parseHeader();
+            return ['data' => $this->response , 'header' => $header ];
     }
 
     public function parseHeader()
@@ -98,37 +135,24 @@ else
 
     public function dbConnection($servername,$username,$password,$dbname)
     {
-                $this->conn = new mysqli($servername, $username, $password,$dbname);
+        $this->conn = new mysqli($servername, $username, $password,$dbname);
                 // Check connection
-       if ($this->conn->connect_error) {
+        if ($this->conn->connect_error) {
            die("Connection failed: " . $this->conn->connect_error);
-          }
+        }
     }
     public function insertDb($data,$crew_id,$json)
     {
-                try {
-                    $res = $this->conn->query("INSERT INTO crew(`crew_id`, `date`,`jsondata`) VALUES('".$crew_id."','".$data."','".$json."') ");
-                } catch (\Exception $e) {
-                  echo $e->getMessage();
-                }
-
-
-                // if($res === true)
-                // {
-                //        echo "Data Inserted";
-                // }
+        try {
+            $res = $this->conn->query("INSERT INTO crew(`crew_id`, `date`,`jsondata`) VALUES('".$crew_id."','".$data."','".$json."') ");
+        } catch (\Exception $e) {
+          echo $e->getMessage();
+        }
     }
     public function insertScheduleData($crew_id, $data)
     {
       $recordType = '';
       try {
-
-        //if ($data['roster_type'] == 'daysoff') {
-        if ($data['roster_type'] == 'Days Off' || $data['roster_sub_type'] == 'BLANK') {  
-          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','{}','".$data["jsondata"]."', '".$data["roster_type"]."')";
-        }else {
-          $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
-
         $query = "SELECT * FROM `rosters` WHERE `is_updated`=0 and `roster_date`='".$data['date']."'";
         $result = $this->conn->query($query);
         $currentRecord = $result->fetch_assoc();
@@ -199,7 +223,7 @@ else
           }
         }
       } catch (\Exception $e) {
-        echo $e->getMessage(); die("Hi error here");
+        echo $e->getMessage(); //die("Hi error here");
       }
     }
     public function insertMemebersQuery($insData)
@@ -210,7 +234,7 @@ else
           '".$insData["flight_number"]."','".$insData["flight_date"]."','".$insData["member_id"]."','".$insData["name"]."','".$insData["base"]."','".$insData["ac"]."','".$insData["pos"]."','".$insData["py"]."','".$insData["status"]."')";
         $res = $this->conn->query($sql);
       } catch (\Exception $e) {
-        echo $e->getMessage(); die("Hi error here");
+        echo $e->getMessage(); //die("Hi error here");
       }
 
     }
@@ -258,7 +282,7 @@ else
       //  echo "FLight Number: ".$flight_number."\n"."Id: ".$id;
         //echo $id;
         if (trim($flight_number) == (string)$id) {
-          echo $flight_number;
+          //echo $flight_number;
           foreach ($tds as $key => $td) {
             if ($key > 18) {
               /*
