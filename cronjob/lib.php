@@ -1,4 +1,5 @@
 <?php
+define('FCMAPIKEY','AAAAEViiXPc:APA91bGEU7sCugJdBrjtb80xxpfZYMGS_qSWOTqg2LRtdgQGDG7uWBx40ZOtn2GXeotolaIO0_pY7mQBGEl2EcMX4fesU9Bv-sQ4-ToO4AKPst-23GS3sPiLHD1sQ5IMfkzyIqpeIOCD');
 class Scrapping
 {
     private $username;
@@ -220,6 +221,12 @@ else
               $sql = "INSERT INTO rosters(`crew_id`,`roster_sub_type`,`roster_date`,`flight_info`,`data`,`roster_type`) VALUES('".$crew_id."','".$data["roster_sub_type"]."','".$data["date"]."','".$data["flight_info"]."','".$data["jsondata"]."', '".$data["roster_type"]."')";
             }
             $this->conn->query($sql);
+            $userquery = "SELECT * FROM users WHERE crew_id = '".$crew_id."' LIMIT 1";
+            $userresul = $this->conn->query($userquery);
+            $userrow=mysqli_fetch_assoc($userresul);
+            if(!empty($userrow['regid'])){
+              sendNotification($userrow['regid'],"Your roster has updated for date " .$data["date"]);
+            }
           }
         }
       } catch (\Exception $e) {
@@ -316,5 +323,25 @@ else
     $tempDate = explode('-', $date);
     // checkdate(month, day, year)
     return checkdate($tempDate[1], $tempDate[2], $tempDate[0]);
+    }
+    public function sendNotification($regid,$message){
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => "https://fcm.googleapis.com/fcm/send",
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => '{"registration_ids":["'.$regid+'"],"data":{"message":"'+$message+'"}}',
+            CURLOPT_HTTPHEADER => array(
+            "authorization: key=".$FCMAPIKEY,
+            "content-type: application/json"
+          ),
+        ));
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        curl_close($curl);
     }
 }
